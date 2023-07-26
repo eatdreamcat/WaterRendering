@@ -178,20 +178,23 @@ float4 WaterFrag(Varying input) : SV_Target
     // normalize input
     input.dirToViewWS.xyz = SafeNormalize(input.dirToViewWS.xyz);
 
-    
     // Detail waves
     half2 detailBump1 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, input.uv.zw).xy;
     half2 detailBump2 = SAMPLE_TEXTURE2D(_SurfaceMap, sampler_SurfaceMap, input.uv.xy).xy;
-    half2 detailBump = max(detailBump1, detailBump2) * 2 - 1;
+    half2 detailBump = (detailBump1 + detailBump2 * 0.5) * 2 - 1;
 
     half3 originNormalWS = SafeNormalize(input.normalWS);
+
+    // Frenel
+    half fresnelTerm = CalculateFresnelTerm(originNormalWS, input.dirToViewWS.xyz);
     
     input.normalWS.xyz += half3(detailBump.x, 0, detailBump.y) * _BumpScale;
     input.normalWS.xyz += half3(1 - waterFX.y * _DetailWaveSpeed.z, 0.5h, 1 - waterFX.z * _DetailWaveSpeed.w) - 0.5;
     input.normalWS.xyz = SafeNormalize(input.normalWS.xyz);
 
-    float rawDepthDistortion = GetRawDepth( screenUV.xy + DistortionUVs(input.normalWS));
+    
     // distance from seabed to camera
+    float rawDepthDistortion = GetRawDepth( screenUV.xy + DistortionUVs(input.normalWS));
     float sceneDepth = Linear01Depth(rawDepthDistortion, _ZBufferParams) / _ZBufferParams.w;
     
     if (sceneDepth > abs(input.positionVS.z))
@@ -222,8 +225,7 @@ float4 WaterFrag(Varying input) : SV_Target
     return half4(screenUV, 0, 1.0);
     #endif
 
-    // Frenel
-    half fresnelTerm = CalculateFresnelTerm(originNormalWS, input.dirToViewWS.xyz);
+   
 
     #ifdef _SHOW_FRENEL
     return half4(fresnelTerm.xxx, 1.0);
@@ -296,7 +298,7 @@ float4 WaterFrag(Varying input) : SV_Target
         + spec;
 
     float foamWeight = foamMask * pow(smoothstep(alpha - _FoamOffset * 0.1, alpha + _FoamOffset * 0.1, _FoamFeather), _FoamGradient);
-    finalColor.rgb = max(finalColor.rgb, foam * foamWeight);
+    finalColor.rgb = finalColor.rgb + foam * foamWeight;
     
     #ifdef _SHOW_FOAM
     return half4(foamWeight.xxx, 1.0);
