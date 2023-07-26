@@ -64,7 +64,7 @@ float noise (float2 st) {
 Varying WaveVertexOperations(Varying input)
 {
     
-    float time = _Time.y;
+    float time = _SinTime.y;
 
     input.fogFactorNoise.y = ((noise((input.positionWS.xz * 0.5) + time) + noise((input.positionWS.xz * 1) + time)) * 0.25 - 0.5) + 1;
 
@@ -78,7 +78,7 @@ Varying WaveVertexOperations(Varying input)
     // Detail UVs
     input.uv.zw = input.positionWS.xz * _SurfaceTilling * 0.1h + time * 0.05h * _DetailWaveSpeed.x * 0.1f + (input.fogFactorNoise.y * 0.1);
     input.uv.xy = input.positionWS.xz * _SurfaceTilling * 0.4h - time.xx * 0.1h * _DetailWaveSpeed.y * 0.1f + (input.fogFactorNoise.y * 0.2);
-
+   
     
     
     return input;

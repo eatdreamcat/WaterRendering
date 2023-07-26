@@ -62,6 +62,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _FoamMap:
+        m_Texture: {fileID: 2800000, guid: 0ea03f2438d69b14e9d02f8f58d58f0e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -79,7 +83,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ScatteringRamp:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: f752b3d115444a840b6a332336207324, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
@@ -112,7 +116,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Absorption: 11.2
+    - _Absorption: 43.1
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -120,15 +124,21 @@ Material:
     - _ClearCoatSmoothness: 0
     - _Cull: 2
     - _Cutoff: 0.5
-    - _DeepCurve: 9.55
-    - _DeepShrink: 2
+    - _DeepCurve: 5.44
+    - _DeepShrink: 4.11
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
-    - _DistortionIntensity: 5.3
+    - _DistortionIntensity: 11.63
     - _DstBlend: 0
     - _EnvironmentReflections: 1
+    - _FoamDepth: 12.11
+    - _FoamFeather: 9.04
+    - _FoamGradient: 10
+    - _FoamOffset: 10
+    - _FoamSpeed: 2.05
+    - _FoamTilling: 2.03
     - _FrenelOffset: 0
-    - _FrenelPower: 5.6
+    - _FrenelPower: 17.4
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -137,26 +147,40 @@ Material:
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _SHIntensity: 0.73
     - _SHOW_ABSORPTION: 0
     - _SHOW_DEPTH: 0
     - _SHOW_DIRTORTION_UV: 1
+    - _SHOW_FOAM: 0
     - _SHOW_FRENEL: 0
     - _SHOW_NORMAL: 0
     - _SHOW_REFLECTION: 0
     - _SHOW_REFRACTION: 0
     - _SHOW_REFRACTION_MASK: 0
+    - _SHOW_SCATTERING: 0
     - _SHOW_SCREEN_UV: 0
+    - _SHOW_SH: 0
+    - _SHOW_SPECULAR: 0
+    - _SHOW_SSS: 0
+    - _SHOW_WATER_COLOR: 0
+    - _SSSIntensity: 0.38
+    - _Scattering: 255.14
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _SpecularIntensity: 0.35
+    - _SpecularRangePower: 12.25
+    - _SpecularRangeScale: 1.01
     - _SrcBlend: 1
     - _Surface: 0
+    - _SurfaceTilling: 0.3
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.3820755, g: 1, b: 0.890771, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DetailWaveSpeed: {r: 13.5, g: 9.5, b: 1, a: 1}
+    - _DeepColor: {r: 0, g: 0.39996442, b: 0.6226415, a: 1}
+    - _DetailWaveSpeed: {r: 50, g: -10, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
