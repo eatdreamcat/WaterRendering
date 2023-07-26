@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.Universal
 {
     [ExecuteAlways]
@@ -15,12 +17,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
     
+        [SerializeField]
+        public PlanarReflections.PlanarReflectionSettings m_settings = new PlanarReflections.PlanarReflectionSettings();
+
+        [SerializeField]
+        private bool m_EnablePlanarReflection = true;
+        
         // Script references
         private PlanarReflections _planarReflections;
-        
-        private static readonly int CameraRoll = Shader.PropertyToID("_CameraRoll");
-        private static readonly int InvViewProjection = Shader.PropertyToID("_InvViewProjection");
-        
+       
         private void OnEnable()
         {
             
@@ -42,31 +47,41 @@ namespace UnityEngine.Rendering.Universal
 
         private void SetWaves()
         {
-            
+            if (m_EnablePlanarReflection)
+            {
+                Shader.EnableKeyword("_REFLECTION_PLANARREFLECTION");
+            }
+            else
+            {
+                Shader.DisableKeyword("_REFLECTION_PLANARREFLECTION");
+            }
         }
 
+        private void GenerateColorRamp()
+        {
+          
+        }
+        
         public void Init()
         {
             SetWaves();
-            
-            if (!gameObject.TryGetComponent(out _planarReflections))
+            GenerateColorRamp();
+            if (m_EnablePlanarReflection)
             {
-                _planarReflections = gameObject.AddComponent<PlanarReflections>();
-            }
+                if (!gameObject.TryGetComponent(out _planarReflections))
+                {
+                    _planarReflections = gameObject.AddComponent<PlanarReflections>();
+                }
             
-            _planarReflections.hideFlags = HideFlags.HideAndDontSave /*| HideFlags.HideInInspector*/;
-            _planarReflections.enabled = true;
+                _planarReflections.hideFlags = HideFlags.HideAndDontSave /*| HideFlags.HideInInspector*/;
+                _planarReflections.enabled = true;
+                _planarReflections.m_settings = m_settings;
+            }
         }
 
         private void BeginCameraRendering(ScriptableRenderContext src, Camera cam)
         {
             if (cam.cameraType == CameraType.Preview) return;
-            
-            var roll = cam.transform.localEulerAngles.z;
-            Shader.SetGlobalFloat(CameraRoll, roll);
-            Shader.SetGlobalMatrix(InvViewProjection,
-                (GL.GetGPUProjectionMatrix(cam.projectionMatrix, false) * cam.worldToCameraMatrix).inverse);
-            
             
         }
     }
