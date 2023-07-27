@@ -22,6 +22,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField]
         private bool m_EnablePlanarReflection = true;
+
+        [SerializeField] private int m_WaveCount;
+        //private List<>
         
         // Script references
         private PlanarReflections _planarReflections;

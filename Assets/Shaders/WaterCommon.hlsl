@@ -30,7 +30,7 @@ struct Varying // frag struct
     float4 positionCS              : TEXCOORD2;
     float4 positionWS              : TEXCOORD3;
     float4 uv                      : TEXCOORD4;  // xy: geometry uv
-    half2  fogFactorNoise          : TEXCOORD5;	// x: fogFactor, y: noise
+    // half2  fogFactorNoise          : TEXCOORD5;	// x: fogFactor, y: noise
     float4 positionVS              : TEXCOORD6;
     float3 preWaveSP 			   : TEXCOORD7;	// screen position of the verticies before wave distortion
     
@@ -64,20 +64,20 @@ float noise (float2 st) {
 Varying WaveVertexOperations(Varying input)
 {
     
-    float time = _SinTime.y;
+    float time = _Time.y * 0.01;
 
-    input.fogFactorNoise.y = ((noise((input.positionWS.xz * 0.5) + time) + noise((input.positionWS.xz * 1) + time)) * 0.25 - 0.5) + 1;
+  //  input.fogFactorNoise.y = 0;// = ((noise((input.positionWS.xz * 0.5) + time * 0.01) + noise((input.positionWS.xz * 1) + time * 0.01)) * 0.25 - 0.5) + 1;
 
     half4 screenUV = ComputeScreenPos(input.positionCS);
     screenUV.xyz /= screenUV.w;
     
     // Fog
-    input.fogFactorNoise.x = ComputeFogFactor(input.positionCS.z);
+ //   input.fogFactorNoise.x = ComputeFogFactor(input.positionCS.z);
     input.preWaveSP = screenUV.xyz; // pre-displaced screenUVs
     
     // Detail UVs
-    input.uv.zw = input.positionWS.xz * _SurfaceTilling * 0.1h + time * 0.05h * _DetailWaveSpeed.x * 0.1f + (input.fogFactorNoise.y * 0.1);
-    input.uv.xy = input.positionWS.xz * _SurfaceTilling * 0.4h - time.xx * 0.1h * _DetailWaveSpeed.y * 0.1f + (input.fogFactorNoise.y * 0.2);
+    input.uv.zw = input.positionWS.xz * _SurfaceTilling * 0.1h + time * 0.1h * _DetailWaveSpeed.x * 0.1f/* + (input.fogFactorNoise.y * 0.1)*/;
+    input.uv.xy = input.positionWS.xz * _SurfaceTilling * 0.4h - time.xx * 0.1h * _DetailWaveSpeed.y * 0.1f /*+ (input.fogFactorNoise.y * 0.2)*/;
    
     
     
@@ -134,7 +134,7 @@ half3 Scattering(half depth)
 half3 Refraction(half2 distortion, half depth)
 {
     half3 output = SAMPLE_TEXTURE2D(_CameraOpaqueTexture, sampler_CameraOpaqueTexture_linear_clamp, distortion).rgb;
-    output *= saturate(pow(depth + 0.5f, _Absorption * 0.1f));
+    // output *= saturate(pow(depth + 0.5f, _Absorption * 0.1f));
     return output;
 }
 
@@ -148,7 +148,7 @@ float GetRawDepth(float2 uv)
 float3 WaterDepth(float2 screenUV, float3 dirToViewWS, float3 positionVS)
 {
     float rawDepth = GetRawDepth(screenUV);
-    
+
     float sceneDepth = Linear01Depth(rawDepth, _ZBufferParams) / _ZBufferParams.w;
     
     float3 dirToViewWithWaterDepth = abs(sceneDepth + positionVS.z) * dirToViewWS;
@@ -196,6 +196,8 @@ float4 WaterFrag(Varying input) : SV_Target
     // distance from seabed to camera
     float rawDepthDistortion = GetRawDepth( screenUV.xy + DistortionUVs(input.normalWS));
     float sceneDepth = Linear01Depth(rawDepthDistortion, _ZBufferParams) / _ZBufferParams.w;
+    // Depth
+    float3 depthNonDistortion = WaterDepth(screenUV, input.dirToViewWS.xyz, input.positionVS.xyz);
     
     if (sceneDepth > abs(input.positionVS.z))
     {
@@ -209,9 +211,8 @@ float4 WaterFrag(Varying input) : SV_Target
     return half4(0 ,0, 0, 1.0);
     #endif
     
-    // Depth
     float3 depth = WaterDepth(screenUV, input.dirToViewWS.xyz, input.positionVS.xyz);
-
+    
     #ifdef _SHOW_DEPTH
     return half4(depth.xxx, 1.0);
     #endif
@@ -232,7 +233,7 @@ float4 WaterFrag(Varying input) : SV_Target
     #endif
     
     // Reflections
-    half3 reflection = SampleReflections(input.normalWS, input.dirToViewWS.xyz, screenUV.xy, 0.0) * fresnelTerm;
+    half3 reflection = SampleReflections(screenUV.xy, 0.0) * fresnelTerm;
     
     #ifdef _SHOW_REFLECTION
     return half4(reflection, 1.0);
@@ -245,7 +246,7 @@ float4 WaterFrag(Varying input) : SV_Target
     #endif
 
     
-    half3 waterColor = lerp(_BaseColor.rgb, _DeepColor.rgb, saturate(1 - depth.x));
+    half3 waterColor = lerp(_BaseColor.rgb, _DeepColor.rgb, saturate(1 - depthNonDistortion.x));
 
     #ifdef _SHOW_WATER_COLOR
     return half4(waterColor.rgb, 1.0);
@@ -262,22 +263,25 @@ float4 WaterFrag(Varying input) : SV_Target
     half3 foamMap = SAMPLE_TEXTURE2D(_FoamMap, sampler_FoamMap,  input.uv.zw).rgb; //r=thick, g=medium, b=light
     half foamMask = pow(depth, _FoamDepth) * length(foamMap);
     half3 foam = foamMask.xxx * (mainLight.shadowAttenuation * mainLight.color + GI);
-   
+    float foamWeight = 1 - pow(smoothstep(depthNonDistortion - _FoamOffset * 0.1, depthNonDistortion + _FoamOffset * 0.1, _FoamFeather), _FoamGradient);
+    #ifdef _SHOW_FOAM
+    return half4(foamWeight.xxx, 1.0);
+    #endif
     
     // specular
     BRDFData brdfData;
     half alpha = 1;
-    InitializeBRDFData(half3(0, 0, 0), 0, mainLight.color, 0.95 * (1 - foamMask), alpha, brdfData);
+    InitializeBRDFData(half3(0, 0, 0), 0, mainLight.color, _Smoothness * (1 - foamMask), alpha, brdfData);
     float specularRange = saturate(pow((1.0 - abs(screenUV.x - 0.5)) * _SpecularRangeScale, _SpecularRangePower));
-    half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.dirToViewWS) * mainLight.shadowAttenuation * mainLight.color * specularRange * _SpecularIntensity;
-
+    half3 spec = DirectBDRF(brdfData, input.normalWS, mainLight.direction, input.dirToViewWS)
+    * mainLight.shadowAttenuation * mainLight.color * specularRange * _SpecularIntensity;
     
     #ifdef _SHOW_SPECULAR
     return half4(spec, 1.0);
     #endif
     
     // SSS
-    half3 scattering = Scattering(depth);
+    half3 scattering = Scattering(depthNonDistortion);
     #ifdef _SHOW_SCATTERING
     return half4(scattering.rgb, 1.0);
     #endif
@@ -291,18 +295,17 @@ float4 WaterFrag(Varying input) : SV_Target
 
     waterColor += sss;
 
-    alpha = alpha * max(1 - depth, fresnelTerm);
-    
+    alpha = alpha * max(1 - depthNonDistortion.x, fresnelTerm);
+    #ifdef _SHOW_ALPHA
+    return half4(alpha.xxx, 1.0);
+    #endif
     finalColor.rgb = reflection // reflection
         + (1 - fresnelTerm) * (refraction * (1 - alpha) + alpha * waterColor)
         + spec;
 
-    float foamWeight = foamMask * pow(smoothstep(alpha - _FoamOffset * 0.1, alpha + _FoamOffset * 0.1, _FoamFeather), _FoamGradient);
-    finalColor.rgb = finalColor.rgb + foam * foamWeight;
-    
-    #ifdef _SHOW_FOAM
-    return half4(foamWeight.xxx, 1.0);
-    #endif
+  
+    finalColor.rgb = finalColor.rgb + foam * max(foamMask , foamWeight);
+   
     return half4(finalColor.rgb, 1.0);
 }
 

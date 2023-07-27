@@ -34,6 +34,7 @@ Shader "ChiChi/ChiChi_Water"
         _Scattering("Scattering", float) = 0
         _SpecularRangeScale("SpecularRangeScale", float) = 1
         _SpecularRangePower("SpecularRangePower", float) = 1
+        _Smoothness("Smoothness", Range(0, 1)) = 0.95
         
         [Header(Foam)]
         _FoamMap("FoamMap", 2D) = "white" {}
@@ -56,6 +57,7 @@ Shader "ChiChi/ChiChi_Water"
         [Toggle(_SHOW_SCATTERING)]_SHOW_SCATTERING("Show Scattering", Float) = 0
         [Toggle(_SHOW_SPECULAR)]_SHOW_SPECULAR("Show Specular", Float) = 0
         [Toggle(_SHOW_FOAM)]_SHOW_FOAM("Show Foam", Float) = 0
+        [Toggle(_SHOW_ALPHA)]_SHOW_ALPHA("Show Alpha", Float) = 0
         
     }
     SubShader
@@ -94,6 +96,7 @@ Shader "ChiChi/ChiChi_Water"
             #pragma shader_feature_local _ _SHOW_SCATTERING
             #pragma shader_feature_local _ _SHOW_SPECULAR
             #pragma shader_feature_local _ _SHOW_FOAM
+            #pragma shader_feature_local _ _SHOW_ALPHA
             ////////////////////INCLUDES//////////////////////
 			#include "WaterCommon.hlsl"
 

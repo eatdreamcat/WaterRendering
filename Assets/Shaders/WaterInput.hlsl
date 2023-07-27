@@ -51,6 +51,7 @@ float _SSSIntensity;
 float _Scattering;
 float _SpecularRangeScale; //("SpecularRangeScale", float) = 1
 float _SpecularRangePower; //("SpecularRangePower", float) = 1
+float _Smoothness;
 
 // foam
 float _FoamDepth;
