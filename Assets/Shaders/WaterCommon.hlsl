@@ -304,7 +304,7 @@ float4 WaterFrag(Varying input) : SV_Target
         + spec;
 
   
-    finalColor.rgb = finalColor.rgb + foam * max(foamMask , foamWeight);
+    finalColor.rgb = finalColor.rgb + foam * foamMask * foamWeight;
    
     return half4(finalColor.rgb, 1.0);
 }
